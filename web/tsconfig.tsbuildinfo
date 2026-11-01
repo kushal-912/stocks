@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/lib.ts","./src/main.tsx","./src/components/charts.tsx","./src/components/ui.tsx","./src/pages/activity.tsx","./src/pages/backtest.tsx","./src/pages/evaluation.tsx","./src/pages/overview.tsx","./src/pages/portfolio.tsx","./src/pages/research.tsx","./src/pages/settings.tsx","./src/pages/stock.tsx"],"version":"5.6.3"}

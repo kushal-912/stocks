@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantdesk"
+version = "0.1.0"
+description = "Autonomous quantitative trading agent for NSE equities: whole-market screening, multi-model research, LLM review, risk-checked execution on paper or Groww/Zerodha."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Personal use" }
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.4",
+    "yfinance>=0.2.50",
+    "feedparser>=6.0",
+    "requests>=2.31",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "tzdata>=2024.1",
+    "typer>=0.12",
+    "rich>=13.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pyarrow>=15",
+    "anthropic>=1.12",
+]
+
+[project.optional-dependencies]
+garch = ["arch>=7.0"]
+zerodha = ["kiteconnect>=5.0"]
+groww = ["growwapi>=1.0", "pyotp>=2.9"]
+dev = ["pytest>=8.0"]
+all = ["arch>=7.0", "kiteconnect>=5.0", "growwapi>=1.0", "pyotp>=2.9", "pytest>=8.0"]
+
+[project.scripts]
+qd = "quantdesk.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["quantdesk*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,128 @@
+# QuantDesk settings. Put your overrides in config/settings.local.yaml (git-ignored); it is merged on top.
+
+market:
+  default_exchange: NSE
+  timezone: Asia/Kolkata
+  open_time: "09:15"
+  close_time: "15:30"
+  benchmark: "^NSEI"             # NIFTY 50
+  holidays: []                   # optional; the agent also detects holidays from the absence of index ticks
+
+# ---------------------------------------------------------------- autonomous agent
+agent:
+  initial_capital: 50000         # paper account starting cash
+  max_positions: 6
+  min_position_value: 5000       # smaller positions are eaten by fixed charges (DP fee, min brokerage)
+  cash_buffer_pct: 2.0
+  max_per_sector: 2
+  shortlist_size: 25             # stocks that get the full deep research each morning
+  screen_weight: 0.4             # final score = 0.4 * screen + 0.6 * deep research
+  min_final_score: 0.30          # minimum conviction to open a position
+  exit_score: 0.0                # held names falling below this are sold (after min_hold_days)
+  swap_margin: 0.25              # a new idea must beat the weakest holding by this much to replace it
+  max_swaps_per_day: 1
+  min_hold_days: 5
+  max_hold_days: 90              # time stop for losers
+  stop_atr: 3.0                  # initial protective stop below entry
+  trail_atr: 4.0                 # trailing stop below the highest close since entry
+  max_gap_up_pct: 3.0            # skip entries that gap up more than this at the open
+  entry_limit_buffer_pct: 0.3
+  regime_filter: false           # true = cap exposure when NIFTY is below its 200-DMA. Off by default: in the
+                                 # Jul-2025..Oct-2026 out-of-sample test it cut returns more than drawdowns.
+  risk_off_max_exposure_pct: 40
+  llm_review: true               # Claude reviews the final buy list (needs ANTHROPIC_API_KEY)
+  schedule:
+    premarket: "08:15"
+    open: "09:20"
+    cancel_entries: "15:10"
+    eod: "15:45"
+    tick_seconds: 60
+
+universe:
+  source: top_liquid             # top_liquid: the top_n most-traded NSE stocks as of each day (no look-ahead)
+  top_n: 750                     # | nse_all (~2,300) | index_members (today's NIFTY Total Market - biased in backtests)
+  min_price: 20
+  min_traded_value_cr: 5.0       # 20-day median traded value (Rs crore) - liquidity floor
+  min_history_days: 260
+  refresh_days: 7
+  history_years: 4
+
+screener:
+  weights:
+    mom_12_1: 0.25               # 12-month return skipping the last month
+    mom_6_1: 0.20
+    risk_adj_mom: 0.20           # momentum / volatility
+    high_52w: 0.15               # closeness to the 52-week high
+    low_vol: 0.10                # low-volatility anomaly
+    volume_trend: 0.05
+    short_reversal: 0.05         # penalise names that just spiked
+  max_atr_pct: 6.0
+  max_extension_pct: 25.0
+  max_rsi: 80
+
+watchlist: []                    # optional extra symbols always included in deep research
+
+data:
+  cache_dir: data/cache
+  cache_ttl_hours: 6
+  history_years: 5
+
+signals:                         # deep-research composite (per stock)
+  weights:
+    trend: 0.25
+    momentum: 0.20
+    mean_reversion: 0.15
+    forecast: 0.15
+    ml: 0.15
+    sentiment: 0.10
+  buy_threshold: 0.25
+  sell_threshold: -0.25
+  forecast_horizon_days: 5
+  atr_stop_multiple: 2.0
+  reward_risk: 2.0
+
+risk:                            # hard limits enforced on every order, paper and live alike
+  capital: 50000
+  risk_per_trade_pct: 1.5        # loss if a stop is hit; 1.0 left the account under-invested (see README)
+  max_position_pct: 22.0
+  max_gross_exposure_pct: 100.0
+  max_open_positions: 8
+  max_daily_loss_pct: 4.0
+  max_orders_per_day: 60
+  max_orders_per_second: 5       # SEBI: >= 10/sec needs a registered algo. Hard-capped at 9.
+  fat_finger_pct: 5.0
+  allow_short: false
+  kelly_fraction: 0.25
+  vol_target_annual: 0.20
+
+execution:
+  mode: paper                    # paper | live
+  broker: paper                  # paper | groww | zerodha  (used when mode = live)
+  product: CNC
+  require_manual_confirmation: false   # the agent is autonomous; set true to approve each live order in the terminal
+  algo_tag: QDAGENT
+  slippage_bps: 5                # paper fills pay this on market orders and stop triggers
+
+costs:
+  profile: groww                 # charges model used by the paper broker and the evaluation
+  custom:
+    brokerage_pct: 0.0
+    brokerage_min: 0.0
+    brokerage_max: 20.0
+
+news:
+  max_headlines_per_symbol: 12
+  lookback_days: 7
+  half_life_hours: 36
+
+llm:
+  enabled: true
+  model: claude-opus-5-5
+  effort: low
+  brief_effort: medium
+  cache_file: data/cache/llm_sentiment.json
+
+paths:
+  audit_log: data/audit/audit.jsonl
+  paper_account: data/paper/account.json
+  kill_switch_file: data/KILL
